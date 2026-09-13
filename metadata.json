@@ -1,0 +1,6 @@
+{
+  "name": "Project Kenji: Celestial Navigation & Dawn/Dusk Barrier Cartography",
+  "description": "Interactive MUDOS-6G cartographic visualizer with Spencer Fourier solar declination engine, Sirius navigation, Dawn/Dusk barrier calculations, and scriptural celestial telemetry.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

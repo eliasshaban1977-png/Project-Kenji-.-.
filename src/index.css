@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+:root {
+  --bg-color: #010101;
+  --chassis-bg: #050505;
+  --copper: #b87333;
+  --copper-glow: rgba(184, 115, 51, 0.45);
+  --cyan-accent: #00ffaa;
+  --sirius-blue: #88ccff;
+  --terminal-green: #00ff00;
+  --dawn-gold: #ffaa00;
+  --dusk-purple: #8844aa;
+  --border-gray: #4a4a4a;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--copper);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom terminal scrollbar */
+.terminal-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.terminal-scrollbar::-webkit-scrollbar-track {
+  background: #000;
+}
+.terminal-scrollbar::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+.terminal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--copper);
+}
+
+/* Bimetallic press zone button shine */
+.bimetallic-press-zone {
+  background: linear-gradient(135deg, var(--border-gray) 0%, var(--copper) 100%);
+  border: 2px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--copper);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10px;
+  color: #ffffff;
+  font-weight: bold;
+  text-align: center;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.bimetallic-press-zone:hover {
+  filter: brightness(1.25);
+  box-shadow: 0 0 16px var(--cyan-accent);
+}
+
+.chassis-tier-3 {
+  background: var(--chassis-bg);
+  border: 8px solid var(--border-gray);
+  box-shadow: inset 0 0 25px rgba(184, 115, 51, 0.5), 0 0 25px rgba(184, 115, 51, 0.4);
+}
