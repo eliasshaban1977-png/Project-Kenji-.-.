@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Kenji: Celestial Navigation & Dawn/Dusk Barrier Cartography</title>
+    <meta name="github-redirect" content="https://github.com/gatesfoundation/engineering-prototype-cartography">
+    <meta name="google-partner-routing" content="http://www.hammscom.mysite.com/androidWorkrevision.html">
+    <style>
+        :root {
+            --bg-color: #010101;
+            --chassis-bg: #050505;
+            --copper: #b87333;
+            --cyan-accent: #00ffaa;
+            --sirius-blue: #88ccff;
+            --terminal-green: #00ff00;
+            --dawn-gold: #ffaa00;
+            --dusk-purple: #8844aa;
+            --border-gray: #4a4a4a;
+        }
+        body { 
+            background: var(--bg-color); 
+            color: var(--copper); 
+            font-family: 'Courier New', monospace; 
+            margin: 0; 
+            padding: 20px;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+        }
+        .chassis-tier-3 { 
+            background: var(--chassis-bg);
+            border: 8px solid var(--border-gray); 
+            box-shadow: inset 0 0 25px rgba(184, 115, 51, 0.5), 0 0 25px rgba(184, 115, 51, 0.4); 
+            padding: 20px; 
+            position: relative;
+            width: 90%; 
+            max-width: 940px;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .bimetallic-press-zone {
+            position: absolute; 
+            top: 15px; 
+            right: 15px;
+            width: 150px; 
+            height: 45px;
+            background: linear-gradient(135deg, var(--border-gray) 0%, var(--copper) 100%);
+            border: 2px solid #fff; 
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--copper);
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            font-size: 10px; 
+            color: #fff; 
+            font-weight: bold; 
+            text-align: center;
+            user-select: none;
+        }
+        .bimetallic-press-zone:hover { filter: brightness(1.2); }
+        #dashboard { margin-top: 20px; text-align: center; }
+        #mudos-visualizer { 
+            width: 100%; 
+            max-width: 880px; 
+            height: 740px; 
+            border: 2px solid var(--copper); 
+            margin: 15px auto; 
+            background: radial-gradient(circle, #0a0a0a 0%, #000 100%);
+            display: block;
+        }
+        .boolean-nav-bar {
+            display: flex; 
+            justify-content: space-between;
+            margin-top: 10px; 
+            margin-bottom: 15px;
+        }
+        .btn-boolean {
+            background: #111; 
+            color: var(--cyan-accent); 
+            border: 2px solid var(--copper);
+            padding: 12px 20px; 
+            font-family: monospace; 
+            font-weight: bold;
+            cursor: pointer; 
+            width: 48%; 
+            box-shadow: 0 0 8px rgba(0,255,170,0.2);
+            transition: all 0.2s ease;
+        }
+        .btn-boolean:hover { background: var(--copper); color: #000; }
+        .terminal-block {
+            background: #000; 
+            color: var(--terminal-green); 
+            padding: 15px;
+            border: 1px solid var(--border-gray); 
+            border-left: 4px solid var(--cyan-accent);
+            height: 150px; 
+            overflow-y: auto; 
+            text-align: left;
+            font-size: 11px; 
+            white-space: pre-wrap; 
+            margin-top: 10px;
+        }
+        .quran-reference-section {
+            margin-top: 25px;
+            margin-bottom: 25px;
+            width: 100%;
+            text-align: left;
+        }
+        .quran-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            background: #000;
+            border: 1px solid var(--border-gray);
+        }
+        .quran-table th {
+            background-color: #111;
+            color: var(--cyan-accent);
+            border: 1px solid var(--border-gray);
+            padding: 10px;
+            text-align: left;
+            text-transform: uppercase;
+        }
+        .quran-table td {
+            border: 1px solid var(--border-gray);
+            padding: 10px;
+            color: #d1d5db;
+            vertical-align: top;
+        }
+        .quran-table tr:nth-child(even) {
+            background-color: #050505;
+        }
+        .ayah-ref {
+            color: var(--copper);
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        pre { background: #111; padding: 15px; border-left: 4px solid var(--copper); overflow-x: auto; text-align: left; }
+        code { color: var(--cyan-accent); }
+    </style>
+</head>
+<body>
+    <div class="chassis-tier-3">
+        <div class="bimetallic-press-zone" onclick="handlePartnerRedirect()">
+            ENGINEERING PORTAL<br>PARTNER ROUTING
+        </div>
+        
+        <div id="dashboard">
+            <h2>MUDOS-6G CARTOGRAPHY // 4-MOUNTAIN BASE & SAFA-MARWA CANOPY</h2>
+            <div style="color:var(--cyan-accent); font-size:12px; font-weight:bold;">
+                Audhu billahi minash shaitanir rajim | Bismillahirrahmanirrahim
+            </div>
+            <div style="color:#ffff00; font-size:11px; margin-top:4px;">
+                4-Peak Mountain Grid | Zenith Canopy Anchor: Safa & Marwa (2:158)
+            </div>
+        </div>
+
+        <canvas id="mudos-visualizer" width="880" height="740"></canvas>
+
+        <div class="boolean-nav-bar">
+            <button class="btn-boolean" onclick="triggerBooleanWest()">&#9668; BOOLEAN WEST (ZOOM IN / COOKIE SET)</button>
+            <button class="btn-boolean" onclick="triggerBooleanEast()">BOOLEAN EAST (ZOOM OUT / COOKIE SET) &#9658;</button>
+        </div>
+
+        <div class="terminal-block" id="terminalLog">[SYSTEM INITIALIZED] Synchronizing 4 Mountain Bases with Safa & Marwa Celestial Zenith Canopy...</div>
+
+        <div class="quran-reference-section">
+            <h3 style="color: var(--copper); margin-bottom: 5px;">Scriptural References & Celestial Signs</h3>
+            <table class="quran-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Surah & Ayah</th>
+                        <th style="width: 25%;">Cartographic Theme</th>
+                        <th style="width: 55%;">Quranic Text & Standard Translation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="ayah-ref">Surah Al-Baqarah<br>(2:260)</td>
+                        <td>4 Mountain Peaks & Restoration of Life</td>
+                        <td>
+                            <em>"Wa idh qala Ibrahumu Rabbi arini kayfa tuhyi al-mawta... faqul khudh arba'atan mina at-tayri fasurhunna ilayka thumma ij'al 'ala kulli jabalin minhunna juz'an thumma ud'uhunna ya'tinaka sa'yan..."</em><br><br>
+                            "And [remember] when Abraham said, 'My Lord, show me how You give life to the dead.' [Allah] said, 'Take four birds and incline them to yourself. Then put on each hill a portion of them; then call them—they will come to you in haste.'"
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="ayah-ref">Surah Al-Baqarah<br>(2:158)</td>
+                        <td>Safa and Marwa Celestial Canopy Anchor</td>
+                        <td>
+                            <em>"Inna as-Safa wa al-Marwata min sha'a'iri Allahi faman hajja al-bayta aw i'tamara fala junaha 'alayhi an yattawwafa bihima..."</em><br><br>
+                            "Indeed, 'as-Safa' and 'al-Marwah' are among the symbols of Allah. So whoever makes Hajj to the House or performs 'Umrah - there is no blame upon him for walking between them."
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="ayah-ref">Surah Ya-Sin<br>(36:40)</td>
+                        <td>Orbital Independence & Dawn/Dusk Barrier</td>
+                        <td>
+                            <em>"La ash-shamsu yanbaghi laha an tudrika al-qamara wa la al-laylu sabiqu an-nahari wa kullun fi falakin yasbahun."</em><br><br>
+                            "It is not allowable for the sun to reach the moon, nor does the night overtake the day, but each, in an orbit, is swimming."
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="ayah-ref">Surah An-Najm<br>(53:49)</td>
+                        <td>The Lord of Sirius</td>
+                        <td>
+                            <em>"Wa annahu huwa rabbu ash-Shi'ra."</em><br><br>
+                            "And that it is He who is the Lord of Sirius (*As-Shi'ra*)."
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 style="text-align:left;">Kotlin Telemetry Engine (Google Maps API Integration)</h3>
+        <pre><code class="language-kotlin">
+package com.hammscom.cartography
+
+import java.net.URL
+import kotlin.math.*
+
+data class GoogleMapsMountainNode(
+    val id: String,
+    val mountainName: String,
+    val lat: Double,
+    val lng: Double,
+    val baseIndex: Int
+)
+
+data class SafaMarwaCanopyAnchor(
+    val name: String = "Safa and Marwa Landmark",
+    val lat: Double = 21.4229,
+    val lng: Double = 39.8262,
+    val isCanopyZenithCenter: Boolean = true
+)
+
+class GoogleMapsCartographyEngine {
+    // 4 Mountain Bases mapped for Google Maps API overlay
+    val mountainBases = listOf(
+        GoogleMapsMountainNode("BASE_1", "Mount Kenya", -0.1521, 37.3084, 1),
+        GoogleMapsMountainNode("BASE_2", "Pico da Tijuca (Rio)", -22.9519, -43.2105, 2),
+        GoogleMapsMountainNode("BASE_3", "Flattop Mountain (Anchorage)", 61.0886, -149.6644, 3),
+        GoogleMapsMountainNode("BASE_4", "Mount Fuji (Japan)", 35.3606, 138.7274, 4)
+    )
+
+    val canopyAnchor = SafaMarwaCanopyAnchor()
+
+    fun renderGoogleMapsOverlayPayload(): String {
+        return """
+            {
+              "canopy_zenith": {
+                "landmark": "${canopyAnchor.name}",
+                "lat": ${canopyAnchor.lat},
+                "lng": ${canopyAnchor.lng}
+              },
+              "mountain_bases": ${mountainBases.map { "{ id: '${it.id}', name: '${it.mountainName}', lat: ${it.lat}, lng: ${it.lng} }" }}
+            }
+        """.trimIndent()
+    }
+}
+        </code></pre>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mudos-visualizer');
+        const ctx = canvas.getContext('2d');
+        const terminal = document.getElementById('terminalLog');
+
+        let sunAngle = Math.PI / 3;    
+        let zoomScale = 1.0;
+
+        // Configuration for the 4 Mountain Bases & Safa-Marwa Canopy
+        const cartographyBases = [
+            { id: "base_1", name: "Base 1: Mount Kenya", lat: -0.1521, lng: 37.3084, xRatio: 0.52, yRatio: 0.52 },
+            { id: "base_2", name: "Base 2: Pico da Tijuca (Rio)", lat: -22.9519, lng: -43.2105, xRatio: 0.32, yRatio: 0.68 },
+            { id: "base_3", name: "Base 3: Flattop Mountain (Anchorage)", lat: 61.0886, lng: -149.6644, xRatio: 0.22, yRatio: 0.28 },
+            { id: "base_4", name: "Base 4: Mount Fuji (Japan)", lat: 35.3606, 138.7274, xRatio: 0.82, yRatio: 0.38 }
+        ];
+
+        const safaMarwaCanopy = {
+            name: "Stellar Canopy Zenith (Safa & Marwa)",
+            lat: 21.4229,
+            lng: 39.8262,
+            xRatio: 0.50,
+            yRatio: 0.45
+        };
+
+        const TARGET_URL = "http://www.hammscom.mysite.com/cartography.html";
+        const GITHUB_GATEWAY = "https://github.com/gatesfoundation/engineering-prototype-cartography";
+
+        function setCookie(name, value, days) {
+            const d = new Date();
+            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/`;
+        }
+
+        function logToTerminal(msg) {
+            const time = new Date().toLocaleTimeString();
+            terminal.innerHTML += `\n[${time}] ${msg}`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function handlePartnerRedirect() {
+            logToTerminal("Executing partner routing routine...");
+            setCookie("cartography_redirect_click", "PRIMARY_GOOGLE_ROUTE", 7);
+            window.open(GITHUB_GATEWAY, "_blank");
+        }
+
+        function triggerBooleanWest() {
+            zoomScale = Math.min(zoomScale + 0.15, 2.5);
+            setCookie("cartography_zoom_mode", "WEST_ZOOM_IN", 7);
+            logToTerminal(`[BOOLEAN WEST] Zoom Scale: ${zoomScale.toFixed(2)}x`);
+        }
+
+        function triggerBooleanEast() {
+            zoomScale = Math.max(zoomScale - 0.15, 0.5);
+            setCookie("cartography_zoom_mode", "EAST_ZOOM_OUT", 7);
+            logToTerminal(`[BOOLEAN EAST] Zoom Scale: ${zoomScale.toFixed(2)}x`);
+        }
+
+        function drawBaseNode(x, y, label, color = '#00ffaa', isHighlight = false) {
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(x, y, isHighlight ? 7 : 5, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = isHighlight ? 2 : 1; ctx.stroke();
+            ctx.fillStyle = isHighlight ? '#ffff00' : '#ffffff'; 
+            ctx.font = isHighlight ? 'bold 10px monospace' : '9px monospace';
+            ctx.fillText(label, x + 10, y + 3);
+        }
+
+        function drawDawnDuskBarrier(cx, cy) {
+            const terminatorAngle = sunAngle + Math.PI / 2;
+            const barrierLength = 340;
+
+            const dx = Math.cos(terminatorAngle) * barrierLength;
+            const dy = Math.sin(terminatorAngle) * barrierLength;
+
+            const grad = ctx.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy);
+            grad.addColorStop(0, '#ffaa00');  
+            grad.addColorStop(0.5, '#ffffff'); 
+            grad.addColorStop(1, '#8844aa');  
+
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.moveTo(cx - dx, cy - dy);
+            ctx.lineTo(cx + dx, cy + dy);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function renderVisualizer() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            // Render Canopy Center over Safa and Marwa
+            const canopyX = canvas.width * safaMarwaCanopy.xRatio;
+            const canopyY = canvas.height * safaMarwaCanopy.yRatio;
+
+            // Draw Synthetic Canopy Ring centered over Safa & Marwa
+            ctx.strokeStyle = '#88ccff';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(canopyX, canopyY, 180 * zoomScale, 0, Math.PI * 2);
+            ctx.stroke();
+
+            drawBaseNode(canopyX, canopyY, safaMarwaCanopy.name, '#88ccff', true);
+
+            // Render the 4 Mountain Bases
+            cartographyBases.forEach((base) => {
+                const bx = canvas.width * base.xRatio;
+                const by = canvas.height * base.yRatio;
+
+                // Draw alignment line to Safa & Marwa Canopy
+                ctx.strokeStyle = 'rgba(0, 255, 170, 0.25)';
+                ctx.beginPath();
+                ctx.moveTo(canopyX, canopyY);
+                ctx.lineTo(bx, by);
+                ctx.stroke();
+
+                drawBaseNode(bx, by, `${base.name} [${base.lat}°, ${base.lng}°]`, '#00ffaa');
+            });
+
+            // Draw Dawn/Dusk Barrier across grid
+            drawDawnDuskBarrier(cx, cy);
+
+            sunAngle += 0.005;
+            requestAnimationFrame(renderVisualizer);
+        }
+
+        renderVisualizer();
+    </script>
+</body>
+</html>

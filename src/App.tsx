@@ -8,7 +8,13 @@ import { MudosVisualizer } from './components/MudosVisualizer';
 import { QuranReferenceSection } from './components/QuranReferenceSection';
 import { TerminalPanel } from './components/TerminalPanel';
 import { KOTLIN_CODE_STRING } from './data/kotlinCode';
-import { setCookie, calculateSolarDeclination, computeDawnDuskBarrier } from './utils/solarEngine';
+import {
+  setCookie,
+  calculateSolarDeclination,
+  computeDawnDuskBarrier,
+  calculateTerminatorBarrier,
+  cartographyBases,
+} from './utils/solarEngine';
 import { TerminalLogEntry } from './types';
 import {
   Play,
@@ -54,6 +60,7 @@ export default function App() {
     showSanctuary: true,
     showBucketNav: true,
     showSiriusSpikes: true,
+    showSatelliteOverlay: false,
   });
 
   // Terminal Log State
@@ -61,19 +68,21 @@ export default function App() {
     {
       id: 'init-1',
       timestamp: new Date().toLocaleTimeString(),
-      message: '[SYSTEM INITIALIZED] Calculating unified Solar Declination & Dawn/Dusk Barrier over central coordinate intersection...',
+      message: '[SYSTEM INITIALIZED] Synchronizing 4 Mountain Bases with Safa & Marwa Celestial Zenith Canopy...',
       type: 'system',
     },
   ]);
   const [isStreamPaused, setIsStreamPaused] = useState<boolean>(false);
 
-  // Initialize Platform Cookies on Mount
+  // Initialize Platform Cookies & 4-Bases Dawn/Dusk Barrier Calculations on Mount
   useEffect(() => {
     try {
       setCookie('cartography_platform_primary', 'GOOGLE_MAPS_EARTH_ENHANCEMENT', 30);
       setCookie('cartography_partner_secondary', 'GATES_FOUNDATION_REAR_STACK', 30);
       setCookie('cartography_ms_angle_attached', 'ACTIVE_STATE_TRUE', 30);
       addLogEntry('[PLATFORM HOOKS] Primary & secondary ecosystem cookies initialized.');
+      // Execute initial dawn/dusk barrier alignment calculation across the 4 bases (Quran 2:260)
+      calculateTerminatorBarrier(Date.now(), dayOfYear, addLogEntry);
     } catch {
       // safe fallback
     }
@@ -102,7 +111,7 @@ export default function App() {
   // Partner Redirect Routine
   const handlePartnerRedirect = () => {
     addLogEntry('[PARTNER ROUTING] Executing partner routing routine...', 'action');
-    addLogEntry('[PARTNER ROUTING] Primary focus: Google Ecosystem Integration (Hardware/Software).', 'action');
+    addLogEntry('[PARTNER ROUTING] Target: https://github.com/gatesfoundation/engineering-prototype-cartography', 'action');
     setCookie('cartography_redirect_click', 'PRIMARY_GOOGLE_ROUTE', 7);
     window.open(GITHUB_GATEWAY, '_blank', 'noopener,noreferrer');
   };
@@ -112,7 +121,7 @@ export default function App() {
     const nextZoom = Math.min(Number((zoomScale + 0.15).toFixed(2)), 2.5);
     setZoomScale(nextZoom);
     setCookie('cartography_zoom_mode', 'WEST_ZOOM_IN', 7);
-    addLogEntry(`[BOOLEAN WEST] Zoom Scale: ${nextZoom.toFixed(2)}x | Focused view.`, 'telemetry');
+    addLogEntry(`[BOOLEAN WEST] Zoom Scale: ${nextZoom.toFixed(2)}x`, 'telemetry');
   };
 
   // Boolean East Button (Zoom Out)
@@ -120,7 +129,7 @@ export default function App() {
     const nextZoom = Math.max(Number((zoomScale - 0.15).toFixed(2)), 0.5);
     setZoomScale(nextZoom);
     setCookie('cartography_zoom_mode', 'EAST_ZOOM_OUT', 7);
-    addLogEntry(`[BOOLEAN EAST] Zoom Scale: ${nextZoom.toFixed(2)}x | Wide field view.`, 'telemetry');
+    addLogEntry(`[BOOLEAN EAST] Zoom Scale: ${nextZoom.toFixed(2)}x`, 'telemetry');
   };
 
   // Copy Kotlin Code
@@ -152,26 +161,25 @@ export default function App() {
         {/* Top Right Bimetallic Press Zone */}
         <div
           id="bimetallic-press-zone"
-          className="bimetallic-press-zone absolute top-3 right-3 sm:top-4 sm:right-4 w-[140px] sm:w-[155px] h-[44px] rounded border-2 border-white cursor-pointer shadow-[0_0_10px_var(--copper)] flex flex-col justify-center items-center text-[10px] font-bold text-white tracking-wider leading-tight select-none z-10"
+          className="bimetallic-press-zone absolute top-3 right-3 sm:top-4 sm:right-4 w-[140px] sm:w-[155px] h-[45px] rounded border-2 border-white cursor-pointer shadow-[0_0_10px_#b87333] flex flex-col justify-center items-center text-[10px] font-bold text-white tracking-wider leading-tight select-none z-10 hover:brightness-125 transition-all"
+          style={{ background: 'linear-gradient(135deg, #4a4a4a 0%, #b87333 100%)' }}
           onClick={handlePartnerRedirect}
           title="Open Engineering Portal & Partner Routing Gateway"
         >
           <span>ENGINEERING PORTAL</span>
-          <span className="text-[9px] text-[#00ffaa] flex items-center gap-1">
-            PARTNER ROUTING <ExternalLink size={9} />
-          </span>
+          <span className="text-[9px] text-[#ffffff] font-bold">PARTNER ROUTING</span>
         </div>
 
         {/* Dashboard Header */}
         <header id="dashboard" className="mt-1 sm:mt-2 text-center pr-[145px] sm:pr-[165px]">
           <h1 className="text-sm sm:text-base md:text-lg font-bold tracking-wider text-[#b87333] uppercase leading-tight font-mono">
-            MUDOS-6G CARTOGRAPHY // UNIFIED SOLAR DECLINATION & SIRIUS NAV
+            MUDOS-6G CARTOGRAPHY // 4-MOUNTAIN BASE & SAFA-MARWA CANOPY
           </h1>
           <div className="text-[#00ffaa] text-[11px] sm:text-[12px] font-bold mt-1 tracking-wide">
             Audhu billahi minash shaitanir rajim | Bismillahirrahmanirrahim
           </div>
           <div className="text-[#ffff00] text-[10px] sm:text-[11px] mt-1 font-mono">
-            Intersection: (B1-B3 Anchor) × (B2-B4 Equator) | High-Precision Solar Declination Engine Active
+            4-Peak Mountain Grid | Zenith Canopy Anchor: Safa & Marwa (2:158)
           </div>
         </header>
 
@@ -194,6 +202,58 @@ export default function App() {
           <div>
             <span className="text-gray-400 block text-[9px]">CURRENT CYCLE</span>
             <span className="text-[#d1d5db] font-bold text-[10px]">{getSeasonInfo(dayOfYear)}</span>
+          </div>
+        </div>
+
+        {/* The 4 Geodesic Mountain Bases & Safa-Marwa Canopy Quick Alignment Ribbon */}
+        <div className="flex flex-wrap items-center justify-between gap-1.5 p-2 mb-3 bg-[#0c1210] border border-[#b87333]/70 rounded font-mono text-[10px]">
+          <div className="flex items-center gap-1.5 text-[#ffaa00] font-bold">
+            <Sparkles size={13} className="text-[#00ffaa]" />
+            <span className="hidden sm:inline">CELESTIAL GRID ALIGNMENT:</span>
+            <span className="sm:hidden">ALIGN:</span>
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap flex-1 justify-end">
+            <button
+              onClick={() => {
+                setLatitudeDeg(21.4229);
+                setLongitudeDeg(39.8262);
+                setHighlightedNodeId('CANOPY_ZENITH');
+                addLogEntry(`[CANOPY LOCK] Aligned observer to Stellar Canopy Zenith (Safa & Marwa) [21.4229°, 39.8262°].`, 'action');
+                calculateTerminatorBarrier(Date.now(), dayOfYear, addLogEntry);
+              }}
+              className={`px-2 py-1 rounded border text-[9px] font-bold transition-all flex items-center gap-1 ${
+                Math.abs(latitudeDeg - 21.4229) < 0.005 && Math.abs(longitudeDeg - 39.8262) < 0.005
+                  ? 'bg-[#88ccff] text-black border-[#88ccff] shadow-[0_0_8px_#88ccff]'
+                  : 'bg-[#101b22] text-[#88ccff] border-[#88ccff]/50 hover:border-[#88ccff] hover:text-white'
+              }`}
+              title="Stellar Canopy Zenith: Safa & Marwa (Quran 2:158)"
+            >
+              <span>CANOPY (SAFA & MARWA)</span>
+            </button>
+            {cartographyBases.map((b) => {
+              const isSelected = Math.abs(latitudeDeg - b.lat) < 0.01 && Math.abs(longitudeDeg - b.lng) < 0.01;
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => {
+                    setLatitudeDeg(b.lat);
+                    setLongitudeDeg(b.lng);
+                    setHighlightedNodeId(b.id.toUpperCase());
+                    addLogEntry(`[BASE LOCK] Aligned observer to ${b.name} [${b.lat}, ${b.lng}].`, 'action');
+                    calculateTerminatorBarrier(Date.now(), dayOfYear, addLogEntry);
+                  }}
+                  className={`px-2 py-1 rounded border text-[9px] font-bold transition-all flex items-center gap-1 ${
+                    isSelected
+                      ? 'bg-[#00ffaa] text-black border-[#00ffaa] shadow-[0_0_8px_#00ffaa]'
+                      : 'bg-[#151d1a] text-gray-300 border-[#2f4f4f] hover:border-[#00ffaa] hover:text-white'
+                  }`}
+                  title={`${b.name} (${b.description})`}
+                >
+                  <span>{b.id.toUpperCase()}</span>
+                  <span className="hidden md:inline">({b.name.split(':')[1]?.trim().split('(')[0] || b.name})</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -397,6 +457,7 @@ export default function App() {
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {[
+                    { key: 'showSatelliteOverlay', label: '🛰️ Google Satellite Imagery' },
                     { key: 'showBarrier', label: 'Dawn/Dusk Barrier' },
                     { key: 'showSanctuary', label: 'Sanctuary Ka\'aba' },
                     { key: 'showYusufStars', label: '11 Stars Prostration' },
@@ -439,9 +500,16 @@ export default function App() {
           onToggleStreamPause={() => setIsStreamPaused(!isStreamPaused)}
         />
 
-        {/* Scriptural References Section with Interactive Locators */}
+        {/* Scriptural References Section with Interactive Locators & Quran 2:260 Overlay */}
         <QuranReferenceSection
           highlightedNodeId={highlightedNodeId}
+          dayOfYear={dayOfYear}
+          onSelectBase={(lat, lng, baseName) => {
+            setLatitudeDeg(lat);
+            setLongitudeDeg(lng);
+            addLogEntry(`[IBRAHIM 2:260 BASE ALIGNED] Observer coordinates updated to ${baseName} (${lat.toFixed(4)}°, ${lng.toFixed(4)}°).`, 'telemetry');
+            calculateTerminatorBarrier(Date.now(), dayOfYear, addLogEntry);
+          }}
           onHighlightNode={(nodeId) => {
             setHighlightedNodeId(nodeId);
             if (nodeId) {

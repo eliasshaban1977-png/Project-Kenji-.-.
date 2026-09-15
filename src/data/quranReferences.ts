@@ -2,6 +2,15 @@ import { ScripturalReference } from '../types';
 
 export const QURAN_REFERENCES: ScripturalReference[] = [
   {
+    surah: 'Surah Al-Baqarah',
+    ayah: '2:260',
+    theme: "Ibrahim's Four Birds on Distant Hills (Resurrection & 4 Global Anchor Bases)",
+    arabicText: 'وَإِذْ قَالَ إِبْرَٰهِـۧمُ رَبِّ أَرِنِى كَيْفَ تُحْىِ ٱلْمَوْتَىٰ ۖ قَالَ أَوَلَمْ تُؤْمِن ۖ قَالَ بَلَىٰ وَلَـٰكِن لِّيَطْمَئِنَّ قَلْبِى ۖ قَالَ فَخُذْ أَرْبَعَةًۭ مِّنَ ٱلطَّيْرِ فَصُرْهُنَّ إِلَيْكَ ثُمَّ ٱجْعَلْ عَلَىٰ كُلِّ جَبَلٍۢ مِّنْهُنَّ جُزْءًۭا ثُمَّ ٱدْعُهُنَّ يَأْتِينَكَ سَعْيًۭا ۚ وَٱعْلَمْ أَنَّ ٱللَّهَ عَزِيزٌ حَكِيمٌ',
+    transliteration: 'Wa idh qala Ibrahimu rabbi arini kayfa tuhyi al-mawta qala awalam tu\'min qala bala walakin liyatma\'inna qalbi qala fakhudh arba\'atan mina at-tayri fasurhunna ilayka thumma ij\'al \'ala kulli jabalin minhunna juz\'an thumma id\'uhunna ya\'tinaka sa\'yan wa\'lam anna Allaha \'azizun hakim.',
+    translation: 'And [remember] when Abraham said, "My Lord, show me how You give life to the dead." [Allah] said, "Have you not believed?" He said, "Yes, but [I ask] only that my heart may be satisfied." [Allah] said, "Take four birds and incline them to yourself. Then put on each hill a portion of them; then call them—they will come to you in haste. And know that Allah is Exalted in Might and Wise."',
+    associatedNodeId: 'FOUR_BASES_IBRAHIM',
+  },
+  {
     surah: 'Surah Ya-Sin',
     ayah: '36:40',
     theme: 'Orbital Independence & Dawn/Dusk Barrier',

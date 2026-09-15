@@ -59,3 +59,33 @@ export interface CartographyAnchor {
   color: string;
   description?: string;
 }
+
+export interface CartographyBase {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  description: string;
+  hillName?: string;
+  birdSymbol?: string;
+  color?: string;
+}
+
+export interface BaseBarrierAlignment {
+  base: CartographyBase;
+  solarAltitudeDeg: number;
+  isDaylight: boolean;
+  status: 'DAWN' | 'DAYLIGHT' | 'DUSK' | 'NIGHT';
+  hourAngleDeg: number;
+  distanceToKaabaKm: number;
+  qiblaBearingDeg: number;
+}
+
+export interface SafaMarwaCanopyAnchor {
+  name: string;
+  lat: number;
+  lng: number;
+  isCanopyZenithCenter: boolean;
+  quranRef: string;
+  description: string;
+}

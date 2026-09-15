@@ -1,11 +1,192 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import {
   calculateSolarDeclination,
   computeDawnDuskBarrier,
   DEG_TO_RAD,
   RAD_TO_DEG,
 } from '../utils/solarEngine';
+import { GoogleMap } from './GoogleMap';
+import {
+  Compass,
+  Globe,
+  Layers,
+  Crosshair,
+  MapPin,
+  Sun,
+  Moon,
+  Sparkles,
+  RotateCcw,
+  Navigation,
+  Info,
+} from 'lucide-react';
 
+export interface SanctuaryMapPoint {
+  id: string;
+  title: string;
+  category: 'sanctuary' | 'landmark' | 'anchor';
+  lat: number;
+  lng: number;
+  quranRef?: string;
+  description: string;
+  color: string;
+  glyphColor: string;
+}
+
+export const SANCTUARY_MAP_POINTS: SanctuaryMapPoint[] = [
+  {
+    id: 'CANOPY_ZENITH',
+    title: 'Stellar Canopy Zenith (Safa & Marwa)',
+    category: 'sanctuary',
+    lat: 21.4229,
+    lng: 39.8262,
+    quranRef: 'Surah Al-Baqarah (2:158)',
+    description: "Indeed, as-Safa and al-Marwah are among the symbols of Allah (Sha'a'ir Allah). Radiant celestial zenith canopy center uniting the 4 mountain bases.",
+    color: '#88ccff',
+    glyphColor: '#ffffff',
+  },
+  {
+    id: 'BASE_1',
+    title: 'Base 1: Mount Kenya',
+    category: 'anchor',
+    lat: -0.1521,
+    lng: 37.3084,
+    quranRef: 'Surah Al-Baqarah (2:260)',
+    description: "East African Mountain Anchor (Batian/Nelion equatorial peak). First mountain base alignment to the Safa & Marwa celestial canopy.",
+    color: '#00ffaa',
+    glyphColor: '#000000',
+  },
+  {
+    id: 'BASE_2',
+    title: 'Base 2: Pico da Tijuca (Rio)',
+    category: 'anchor',
+    lat: -22.9519,
+    lng: -43.2105,
+    quranRef: 'Surah Al-Baqarah (2:260)',
+    description: "South American Mountain Anchor (Atlantic Coastal Massif). Falcon alignment tracking dawn/dusk barrier across the southern Atlantic.",
+    color: '#00ffaa',
+    glyphColor: '#000000',
+  },
+  {
+    id: 'BASE_3',
+    title: 'Base 3: Flattop Mountain (Anchorage)',
+    category: 'anchor',
+    lat: 61.0886,
+    lng: -149.6644,
+    quranRef: 'Surah Al-Baqarah (2:260)',
+    description: "North Pacific Mountain Anchor (Chugach Range, Alaska). Subarctic peak tracking polar solar declination and twilight barrier.",
+    color: '#88ccff',
+    glyphColor: '#000000',
+  },
+  {
+    id: 'BASE_4',
+    title: 'Base 4: Mount Fuji (Japan)',
+    category: 'anchor',
+    lat: 35.3606,
+    lng: 138.7274,
+    quranRef: 'Surah Al-Baqarah (2:260)',
+    description: "East Asian Mountain Anchor (Honshu, Japan). Sacred eastern horizon peak tracking sunrise terminator barrier over the Pacific arc.",
+    color: '#ffaa00',
+    glyphColor: '#000000',
+  },
+  {
+    id: 'KAABA_01',
+    title: "The Holy Ka'aba (Bayt Allah)",
+    category: 'sanctuary',
+    lat: 21.4225,
+    lng: 39.8262,
+    quranRef: 'Surah Al-Baqarah (2:127)',
+    description: "Foundations raised by Ibrahim & Ismail (AS). Global Qibla epicenter & primary celestial intersection anchor.",
+    color: '#b87333',
+    glyphColor: '#ffff00',
+  },
+  {
+    id: 'SAFA_01',
+    title: 'Mount As-Safa (Sha\'a\'ir Allah)',
+    category: 'landmark',
+    lat: 21.4229,
+    lng: 39.8273,
+    quranRef: 'Surah Al-Baqarah (2:158)',
+    description: "The sacred starting landmark of the Sa'i course towards Marwa.",
+    color: '#00ffaa',
+    glyphColor: '#000000',
+  },
+  {
+    id: 'MARWAH_01',
+    title: 'Mount Al-Marwah (Sha\'a\'ir Allah)',
+    category: 'landmark',
+    lat: 21.4258,
+    lng: 39.8276,
+    quranRef: 'Surah Al-Baqarah (2:158)',
+    description: "The northern terminus landmark of the sacred Sa'i corridor.",
+    color: '#00ffaa',
+    glyphColor: '#000000',
+  },
+  {
+    id: 'ANCHOR_B1',
+    title: 'B1 Meridian Anchor (North Polar Vector)',
+    category: 'anchor',
+    lat: 21.4350,
+    lng: 39.8262,
+    description: 'MUDOS-6G North Celestial Polar Alignment Anchor on the 39.8262° E meridian.',
+    color: '#88ccff',
+    glyphColor: '#ffffff',
+  },
+  {
+    id: 'ANCHOR_B3',
+    title: 'B3 Meridian Anchor (South Polar Vector)',
+    category: 'anchor',
+    lat: 21.4100,
+    lng: 39.8262,
+    description: 'MUDOS-6G South Alignment Anchor defining the (B1-B3 Anchor) Meridian line.',
+    color: '#88ccff',
+    glyphColor: '#ffffff',
+  },
+  {
+    id: 'ANCHOR_B2',
+    title: 'B2 Equator Anchor (West Wing)',
+    category: 'anchor',
+    lat: 21.4225,
+    lng: 39.8130,
+    description: 'Western cartographic wing along the 21.4225° N sanctuary parallel.',
+    color: '#ffaa00',
+    glyphColor: '#000000',
+  },
+  {
+    id: 'ANCHOR_B4',
+    title: 'B4 Equator Anchor (East Wing)',
+    category: 'anchor',
+    lat: 21.4225,
+    lng: 39.8390,
+    description: 'Eastern cartographic wing along the 21.4225° N sanctuary parallel.',
+    color: '#ffaa00',
+    glyphColor: '#000000',
+  },
+];
+
+function calculateBearingAndDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const rLat1 = lat1 * (Math.PI / 180);
+  const rLat2 = lat2 * (Math.PI / 180);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(rLat1) * Math.cos(rLat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distanceKm = R * c;
+
+  const y = Math.sin(dLon) * Math.cos(rLat2);
+  const x =
+    Math.cos(rLat1) * Math.sin(rLat2) -
+    Math.sin(rLat1) * Math.cos(rLat2) * Math.cos(dLon);
+  let initialBearing = Math.atan2(y, x) * (180 / Math.PI);
+  initialBearing = (initialBearing + 360) % 360;
+
+  return { distanceKm, bearingDeg: initialBearing };
+}
+
+// Controller to smoothly pan & zoom Google Map when props change
 interface MudosVisualizerProps {
   dayOfYear: number;
   latitudeDeg: number;
@@ -24,6 +205,7 @@ interface MudosVisualizerProps {
     showSanctuary: boolean;
     showBucketNav: boolean;
     showSiriusSpikes: boolean;
+    showSatelliteOverlay?: boolean;
   };
 }
 
@@ -42,6 +224,17 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  // View Mode: 'celestial' (synthetic radar), 'map' (real-world geographic Google Map), 'blend' (dual layer)
+  const [viewMode, setViewMode] = useState<'celestial' | 'map' | 'blend'>('celestial');
+  const [mapTypeId, setMapTypeId] = useState<'satellite' | 'hybrid' | 'terrain' | 'roadmap'>('satellite');
+  const [blendOpacity, setBlendOpacity] = useState<number>(0.65);
+  const [selectedMapPoint, setSelectedMapPoint] = useState<SanctuaryMapPoint | null>(null);
+  const [mapCenterOverride, setMapCenterOverride] = useState<{ lat: number; lng: number } | null>(null);
+  const [showCelestialProjectionsOnMap, setShowCelestialProjectionsOnMap] = useState<boolean>(true);
+
+  // Determine if satellite imagery layer is visible (either via viewMode or explicit layer toggle)
+  const isSatelliteLayerActive = viewMode !== 'celestial' || Boolean(layers.showSatelliteOverlay);
+
   // Orbital simulation state
   const stateRef = useRef({
     sunAngle: Math.PI / 3,
@@ -55,6 +248,47 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
     dragStartY: 0,
     hoveredNode: null as string | null,
   });
+
+  // Re-center Google Map on observer when observer coordinates change
+  useEffect(() => {
+    setMapCenterOverride(null);
+  }, [latitudeDeg, longitudeDeg]);
+
+  // Sync highlighted node from scriptural reference section
+  useEffect(() => {
+    if (!highlightedNodeId) return;
+    const match = SANCTUARY_MAP_POINTS.find((p) => p.id === highlightedNodeId);
+    if (match) {
+      setSelectedMapPoint(match);
+      setMapCenterOverride({ lat: match.lat, lng: match.lng });
+    }
+  }, [highlightedNodeId]);
+
+  // Calculated solar declination
+  const decResult = useMemo(() => calculateSolarDeclination(dayOfYear), [dayOfYear]);
+  const subsolarLat = decResult.declinationDeg;
+  const subsolarLng = useMemo(() => {
+    return ((longitudeDeg - (stateRef.current.sunAngle * (180 / Math.PI)) + 540) % 360) - 180;
+  }, [longitudeDeg]);
+  const sublunarLat = useMemo(() => 5.14 * Math.sin(stateRef.current.moonAngle), []);
+  const sublunarLng = useMemo(() => {
+    return ((longitudeDeg - (stateRef.current.moonAngle * (180 / Math.PI)) + 540) % 360) - 180;
+  }, [longitudeDeg]);
+
+  // Qibla bearing & geodesic distance to Ka'aba
+  const qiblaData = useMemo(() => {
+    return calculateBearingAndDistance(latitudeDeg, longitudeDeg, 21.4225, 39.8262);
+  }, [latitudeDeg, longitudeDeg]);
+
+  // Effective Google Map Center (defaults to Observer Coordinates)
+  const effectiveCenter = useMemo(() => {
+    return mapCenterOverride || { lat: latitudeDeg, lng: longitudeDeg };
+  }, [mapCenterOverride, latitudeDeg, longitudeDeg]);
+
+  // Map Zoom mapped from zoomScale
+  const mapZoom = useMemo(() => {
+    return Math.min(Math.max(Math.round(15 + (zoomScale - 1.0) * 4), 2), 20);
+  }, [zoomScale]);
 
   const [hoverInfo, setHoverInfo] = useState<{
     title: string;
@@ -741,6 +975,90 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
         ctx.restore();
       }
 
+      // 11b. Safa & Marwa Celestial Zenith Canopy & 4-Mountain Peak Bases
+      const canopyX = 35;
+      const canopyY = 0;
+      const mountainBases = [
+        { id: 'BASE_1', name: 'Base 1: Mount Kenya', lat: -0.1521, lng: 37.3084, x: 20, y: 200, color: '#00ffaa' },
+        { id: 'BASE_2', name: 'Base 2: Pico da Tijuca (Rio)', lat: -22.9519, lng: -43.2105, x: -210, y: 175, color: '#00ffaa' },
+        { id: 'BASE_3', name: 'Base 3: Flattop Mountain (Anchorage)', lat: 61.0886, lng: -149.6644, x: -220, y: -190, color: '#88ccff' },
+        { id: 'BASE_4', name: 'Base 4: Mount Fuji (Japan)', lat: 35.3606, lng: 138.7274, x: 235, y: -110, color: '#ffaa00' },
+      ];
+
+      ctx.save();
+      // Draw Synthetic Celestial Canopy Ring centered over Safa & Marwa (Surah Al-Baqarah 2:158)
+      ctx.strokeStyle = '#88ccff';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(canopyX, canopyY, 180, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Pulsing Canopy Aura
+      const canopyPulse = Math.sin(stateRef.current.pulse * 1.5) * 6;
+      const canopyGrad = ctx.createRadialGradient(canopyX, canopyY, 175, canopyX, canopyY, 185 + canopyPulse);
+      canopyGrad.addColorStop(0, 'rgba(136, 204, 255, 0.18)');
+      canopyGrad.addColorStop(1, 'rgba(136, 204, 255, 0)');
+      ctx.fillStyle = canopyGrad;
+      ctx.beginPath();
+      ctx.arc(canopyX, canopyY, 185 + canopyPulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Canopy Zenith Label & Marker
+      ctx.fillStyle = '#88ccff';
+      ctx.beginPath();
+      ctx.arc(canopyX, canopyY, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffff00';
+      ctx.font = 'bold 9px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('STELLAR CANOPY ZENITH (SAFA & MARWA) [2:158]', canopyX + 12, canopyY - 4);
+      ctx.fillStyle = '#88ccff';
+      ctx.font = '8px monospace';
+      ctx.fillText('21.4229° N, 39.8262° E | SHA\'A\'IR ALLAH ANCHOR', canopyX + 12, canopyY + 7);
+
+      // Render 4 Mountain Bases and radiating alignment lines to Canopy Zenith
+      mountainBases.forEach((mb) => {
+        // Alignment ray connecting to Safa & Marwa canopy center
+        ctx.strokeStyle = 'rgba(0, 255, 170, 0.3)';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(canopyX, canopyY);
+        ctx.lineTo(mb.x, mb.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Base node
+        ctx.fillStyle = mb.color;
+        ctx.beginPath();
+        ctx.arc(mb.x, mb.y, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Mountain peak glyph ▲
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '8px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('▲', mb.x, mb.y - 8);
+
+        // Label
+        ctx.fillStyle = mb.color;
+        ctx.font = 'bold 8.5px monospace';
+        ctx.textAlign = mb.x >= 0 ? 'left' : 'right';
+        const labelX = mb.x >= 0 ? mb.x + 9 : mb.x - 9;
+        ctx.fillText(`${mb.name}`, labelX, mb.y - 3);
+        ctx.fillStyle = '#d1d5db';
+        ctx.font = '7.5px monospace';
+        ctx.fillText(`[${mb.lat.toFixed(2)}°, ${mb.lng.toFixed(2)}°]`, labelX, mb.y + 7);
+      });
+      ctx.restore();
+
       // 12. Highlight Indicator if a node is selected from the table
       if (highlightedNodeId) {
         ctx.save();
@@ -748,14 +1066,34 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
         let targetY = 0;
         let targetLabel = '';
 
-        if (highlightedNodeId === 'SANCTUARY_KAABA') {
+        if (highlightedNodeId === 'SANCTUARY_KAABA' || highlightedNodeId === 'KAABA_01') {
           targetX = 0;
           targetY = 0;
           targetLabel = 'FOCUS: SANCTUARY KA\'ABA [2:127]';
-        } else if (highlightedNodeId === 'SAFA_MARWA') {
+        } else if (highlightedNodeId === 'SAFA_MARWA' || highlightedNodeId === 'CANOPY_ZENITH') {
           targetX = 35;
           targetY = 0;
-          targetLabel = 'FOCUS: SAFA & MARWA [2:158]';
+          targetLabel = 'FOCUS: SAFA & MARWA CANOPY ZENITH [2:158]';
+        } else if (highlightedNodeId === 'BASE_1') {
+          targetX = 20;
+          targetY = 200;
+          targetLabel = 'FOCUS: BASE 1 (MOUNT KENYA) [2:260]';
+        } else if (highlightedNodeId === 'BASE_2') {
+          targetX = -210;
+          targetY = 175;
+          targetLabel = 'FOCUS: BASE 2 (PICO DA TIJUCA) [2:260]';
+        } else if (highlightedNodeId === 'BASE_3') {
+          targetX = -220;
+          targetY = -190;
+          targetLabel = 'FOCUS: BASE 3 (FLATTOP MOUNTAIN) [2:260]';
+        } else if (highlightedNodeId === 'BASE_4') {
+          targetX = 235;
+          targetY = -110;
+          targetLabel = 'FOCUS: BASE 4 (MOUNT FUJI) [2:260]';
+        } else if (highlightedNodeId === 'FOUR_BASES_IBRAHIM') {
+          targetX = canopyX;
+          targetY = canopyY;
+          targetLabel = 'FOCUS: 4 DISTANT MOUNTAIN BASES [2:260]';
         } else if (highlightedNodeId === 'SIRIUS_BEACON') {
           targetX = siriusX;
           targetY = siriusY;
@@ -913,39 +1251,218 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
       className="relative w-full flex flex-col items-center select-none"
     >
       <div className="relative w-full max-w-[880px] overflow-hidden rounded border-2 border-[#b87333] shadow-[0_0_15px_rgba(184,115,51,0.3)] bg-[#050505]">
-        <canvas
-          id="mudos-visualizer"
-          ref={canvasRef}
-          width={880}
-          height={740}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          className="w-full h-auto cursor-grab active:cursor-grabbing block"
-          title="Drag to pan, use Boolean buttons or wheel to zoom"
-        />
+        {/* Integrated Navigation HUD & View Mode Bar */}
+        <div className="bg-[#0c0c0c] border-b border-[#333] px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+          {/* Mode Selector Buttons */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-gray-400 text-[10px] hidden sm:inline">VIEW:</span>
+            <button
+              id="btn-view-celestial"
+              onClick={() => {
+                setViewMode('celestial');
+                onLogMessage('[DISPLAY MODE] Switched to Synthetic Celestial Radar Canvas.');
+              }}
+              className={`px-2.5 py-1 text-[10px] font-bold font-mono rounded border transition-colors flex items-center gap-1 ${
+                viewMode === 'celestial'
+                  ? 'bg-[#00ffaa] text-black border-[#00ffaa]'
+                  : 'bg-[#151515] text-gray-400 border-[#333] hover:text-white'
+              }`}
+              title="Synthetic MUDOS-6G Celestial Radar View"
+            >
+              <Compass size={12} />
+              <span>SYNTHETIC CELESTIAL</span>
+            </button>
 
-        {/* Quick Pan Reset Button Overlay */}
-        <button
-          onClick={handleResetPan}
-          className="absolute bottom-3 right-3 px-2 py-1 bg-[#111111]/80 hover:bg-[#b87333] text-[#00ffaa] hover:text-black border border-[#b87333] text-[10px] font-mono rounded transition-colors"
-          title="Reset pan to center anchor"
-        >
-          RESET PAN
-        </button>
+            <button
+              id="btn-view-map"
+              onClick={() => {
+                setViewMode('map');
+                onLogMessage(`[DISPLAY MODE] Switched to Google Maps Satellite Imagery Overlay centered on Observer (${latitudeDeg.toFixed(2)}° N, ${longitudeDeg.toFixed(2)}° E).`);
+              }}
+              className={`px-2.5 py-1 text-[10px] font-bold font-mono rounded border transition-colors flex items-center gap-1 ${
+                viewMode === 'map'
+                  ? 'bg-[#00ffaa] text-black border-[#00ffaa]'
+                  : 'bg-[#151515] text-gray-400 border-[#333] hover:text-white'
+              }`}
+              title="Real-world Satellite Imagery Google Map Overlay centered on Observer Coordinates"
+            >
+              <Globe size={12} />
+              <span>SATELLITE MAP</span>
+            </button>
 
-        {/* Dynamic Hover Tooltip if present */}
-        {hoverInfo && (
-          <div
-            className="absolute pointer-events-none bg-black/90 border border-[#00ffaa] p-2 text-[10px] font-mono text-white rounded shadow-lg"
-            style={{ left: hoverInfo.x + 10, top: hoverInfo.y + 10 }}
-          >
-            <div className="font-bold text-[#00ffaa]">{hoverInfo.title}</div>
-            <div className="text-gray-300">{hoverInfo.description}</div>
-            <div className="text-[#b87333]">{hoverInfo.coords}</div>
+            <button
+              id="btn-view-blend"
+              onClick={() => {
+                setViewMode('blend');
+                onLogMessage('[DISPLAY MODE] Switched to Dual Celestial / Satellite Terrain Blend Overlay.');
+              }}
+              className={`px-2.5 py-1 text-[10px] font-bold font-mono rounded border transition-colors flex items-center gap-1 ${
+                viewMode === 'blend'
+                  ? 'bg-[#00ffaa] text-black border-[#00ffaa]'
+                  : 'bg-[#151515] text-gray-400 border-[#333] hover:text-white'
+              }`}
+              title="Overlay Synthetic Celestial Radar over Google Satellite Imagery"
+            >
+              <Layers size={12} />
+              <span>DUAL BLEND</span>
+            </button>
+          </div>
+
+          {/* Geographic & Satellite Map Controls (active when viewMode is map, blend, or satellite layer enabled) */}
+          {isSatelliteLayerActive && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Basemap Type Toggles */}
+              {(['satellite', 'hybrid', 'terrain', 'roadmap'] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => {
+                    setMapTypeId(type);
+                    onLogMessage(`[MAP BASEMAP] Satellite layer switched to ${type.toUpperCase()}`);
+                  }}
+                  className={`px-2 py-0.5 text-[9px] uppercase font-mono rounded border transition-colors ${
+                    mapTypeId === type
+                      ? 'bg-[#b87333] text-black font-bold border-white'
+                      : 'bg-[#181818] text-gray-400 border-[#333] hover:text-white'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+
+              {/* Recenter Observer Button */}
+              <button
+                onClick={() => {
+                  setMapCenterOverride(null);
+                  onLogMessage(`[MAP CAMERA] Centered on Observer Coordinates: ${latitudeDeg.toFixed(4)}° N, ${longitudeDeg.toFixed(4)}° E`);
+                }}
+                className="px-2 py-0.5 text-[9px] font-mono bg-[#112211] text-[#00ffaa] border border-[#00ffaa]/50 rounded hover:bg-[#00ffaa] hover:text-black transition-colors flex items-center gap-1"
+                title="Recenter camera on current observer coordinates"
+              >
+                <Crosshair size={10} />
+                <span>OBSERVER ({latitudeDeg.toFixed(2)}°, {longitudeDeg.toFixed(2)}°)</span>
+              </button>
+
+              {/* Recenter Ka'aba Sanctuary */}
+              <button
+                onClick={() => {
+                  setMapCenterOverride({ lat: 21.4225, lng: 39.8262 });
+                  onLogMessage('[MAP CAMERA] Focused on Holy Ka\'aba Sanctuary (21.4225° N, 39.8262° E)');
+                }}
+                className="px-2 py-0.5 text-[9px] font-mono bg-[#221811] text-[#ffaa00] border border-[#ffaa00]/50 rounded hover:bg-[#ffaa00] hover:text-black transition-colors flex items-center gap-1"
+                title="Recenter on Ka'aba Sanctuary"
+              >
+                <MapPin size={10} />
+                <span>KA'ABA</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Dual Blend Opacity Slider Sub-Bar */}
+        {(viewMode === 'blend' || (viewMode === 'celestial' && layers.showSatelliteOverlay)) && (
+          <div className="bg-[#111] border-b border-[#222] px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-gray-300">
+            <div className="flex items-center gap-2">
+              <Sparkles size={12} className="text-[#00ffaa]" />
+              <span>Radar Overlay Opacity:</span>
+              <input
+                type="range"
+                min="0.1"
+                max="0.9"
+                step="0.05"
+                value={blendOpacity}
+                onChange={(e) => setBlendOpacity(parseFloat(e.target.value))}
+                className="w-24 accent-[#00ffaa] bg-[#222] h-1.5 rounded cursor-pointer"
+              />
+              <span className="text-[#00ffaa] font-bold">{Math.round(blendOpacity * 100)}%</span>
+            </div>
+            <div className="text-[9px] text-[#ffaa00]">
+              * Real-world satellite imagery with Spencer Fourier celestial vectors projected in screen blend
+            </div>
           </div>
         )}
+
+        {/* Main Visualization Viewport Container (740px height) */}
+        <div className="relative w-full h-[740px] bg-[#020202]">
+          {/* Google Maps Satellite Imagery Layer */}
+          <div
+            className="absolute inset-0 w-full h-full"
+            style={{
+              display: isSatelliteLayerActive ? 'block' : 'none',
+              zIndex: 1,
+            }}
+          >
+            {isSatelliteLayerActive && (
+              <GoogleMap
+                latitudeDeg={latitudeDeg}
+                longitudeDeg={longitudeDeg}
+                zoom={mapZoom}
+                mapTypeId={mapTypeId}
+                opacity={viewMode === 'blend' || (viewMode === 'celestial' && layers.showSatelliteOverlay) ? 1.0 : 1.0}
+                centerOverride={mapCenterOverride}
+                sanctuaryPoints={SANCTUARY_MAP_POINTS}
+                selectedPoint={selectedMapPoint}
+                onSelectPoint={(pt) => setSelectedMapPoint(pt)}
+                subsolarLat={subsolarLat}
+                subsolarLng={subsolarLng}
+                sublunarLat={sublunarLat}
+                sublunarLng={sublunarLng}
+                qiblaBearingDeg={qiblaData.bearingDeg}
+                qiblaDistanceKm={qiblaData.distanceKm}
+                solarDeclinationDeg={decResult.declinationDeg}
+                showCelestialProjections={showCelestialProjectionsOnMap}
+                onLogMessage={onLogMessage}
+              />
+            )}
+          </div>
+
+          {/* Synthetic Celestial Canvas (active in celestial or blend mode) */}
+          <canvas
+            id="mudos-visualizer"
+            ref={canvasRef}
+            width={880}
+            height={740}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            className="w-full h-full block"
+            style={{
+              display: viewMode === 'map' ? 'none' : 'block',
+              position: isSatelliteLayerActive ? 'absolute' : 'relative',
+              top: 0,
+              left: 0,
+              zIndex: isSatelliteLayerActive ? 2 : 1,
+              pointerEvents: (viewMode === 'blend' || layers.showSatelliteOverlay) ? 'none' : 'auto',
+              opacity: (viewMode === 'blend' || layers.showSatelliteOverlay) ? blendOpacity : 1,
+              mixBlendMode: (viewMode === 'blend' || layers.showSatelliteOverlay) ? 'screen' : 'normal',
+              cursor: isSatelliteLayerActive ? 'default' : 'grab',
+            }}
+            title={isSatelliteLayerActive ? 'Celestial radar overlay on satellite imagery' : 'Drag to pan, use Boolean buttons or wheel to zoom'}
+          />
+
+          {/* Quick Pan Reset Button Overlay (in celestial mode) */}
+          {viewMode === 'celestial' && (
+            <button
+              onClick={handleResetPan}
+              className="absolute bottom-3 right-3 px-2 py-1 bg-[#111111]/80 hover:bg-[#b87333] text-[#00ffaa] hover:text-black border border-[#b87333] text-[10px] font-mono rounded transition-colors z-10"
+              title="Reset pan to center anchor"
+            >
+              RESET PAN
+            </button>
+          )}
+
+          {/* Dynamic Hover Tooltip if present in celestial mode */}
+          {viewMode === 'celestial' && hoverInfo && (
+            <div
+              className="absolute pointer-events-none bg-black/90 border border-[#00ffaa] p-2 text-[10px] font-mono text-white rounded shadow-lg z-20"
+              style={{ left: hoverInfo.x + 10, top: hoverInfo.y + 10 }}
+            >
+              <div className="font-bold text-[#00ffaa]">{hoverInfo.title}</div>
+              <div className="text-gray-300">{hoverInfo.description}</div>
+              <div className="text-[#b87333]">{hoverInfo.coords}</div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
