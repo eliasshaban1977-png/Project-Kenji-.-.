@@ -161,6 +161,39 @@ export const SANCTUARY_MAP_POINTS: SanctuaryMapPoint[] = [
     color: '#ffaa00',
     glyphColor: '#000000',
   },
+  {
+    id: 'SANCTUARY_AMNAN',
+    title: 'Inviolable Sanctuary Haven (Amnan)',
+    category: 'sanctuary',
+    lat: 21.4225,
+    lng: 39.8262,
+    quranRef: 'Surah Al-Baqarah (2:125)',
+    description: 'Divine declaration of the Sacred House as a place of return and an inviolable haven of safety and security (amnan) for all creation.',
+    color: '#ffd700',
+    glyphColor: '#000000',
+  },
+  {
+    id: 'AL_QALAID_GARLANDS',
+    title: 'Sacred Marked Garlands (Al-Qala\'id)',
+    category: 'sanctuary',
+    lat: 21.4235,
+    lng: 39.8262,
+    quranRef: 'Surah Al-Ma\'idah (5:2, 5:97)',
+    description: 'Sacred marked garlands establishing inviolability, immunity, and divine safe passage within the sanctuary perimeter.',
+    color: '#00ffaa',
+    glyphColor: '#000000',
+  },
+  {
+    id: 'HUNTING_PROHIBITION_REFUGE',
+    title: 'Wildlife Refuge & Hunting Prohibition',
+    category: 'sanctuary',
+    lat: 21.4220,
+    lng: 39.8255,
+    quranRef: 'Surah Al-Ma\'idah (5:95)',
+    description: 'Universal ecological refuge: absolute prohibition of hunting or harming wild game within the consecrated sanctuary zone.',
+    color: '#88ccff',
+    glyphColor: '#000000',
+  },
 ];
 
 function calculateBearingAndDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -402,10 +435,11 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
         }
 
         // Major Coordinate Axes: B1-B3 (Meridian) & B2-B4 (Equator)
-        // B1-B3 Meridian (North-South)
+        // Intersecting directly over the Stellar Canopy Zenith of Safa & Marwa (21.4229° N, 39.8262° E)
+        // B1-B3 Meridian (North-South, Zenith to Nadir through Ka'bah)
         ctx.beginPath();
         ctx.strokeStyle = '#b87333';
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.8;
         ctx.setLineDash([6, 3]);
         ctx.moveTo(0, -370);
         ctx.lineTo(0, 370);
@@ -414,18 +448,31 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
         // B2-B4 Equator (East-West)
         ctx.beginPath();
         ctx.strokeStyle = '#00ffaa';
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.8;
         ctx.setLineDash([6, 3]);
         ctx.moveTo(-370, 0);
         ctx.lineTo(370, 0);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Central intersection indicator
+        // Axis Inscriptions
+        ctx.fillStyle = '#b87333';
+        ctx.font = 'bold 8px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('▲ B1/B3 MERIDIAN: ZENITH [SAFA & MARWA] ➔ SANCTUARY [KA\'ABA] ➔ NADIR ▼', 0, -355);
+
+        ctx.fillStyle = '#00ffaa';
+        ctx.font = 'bold 7.5px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText('◄ B4 WEST EQUATORIAL ANCHOR', -190, -8);
+        ctx.textAlign = 'left';
+        ctx.fillText('B2 EAST EQUATORIAL ANCHOR ►', 190, -8);
+
+        // Central intersection indicator over Safa & Marwa Stellar Canopy Zenith
         ctx.beginPath();
         ctx.strokeStyle = '#ffff00';
-        ctx.lineWidth = 1;
-        ctx.arc(0, 0, 16, 0, Math.PI * 2);
+        ctx.lineWidth = 1.5;
+        ctx.arc(0, 0, 18, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
       }
@@ -880,53 +927,97 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
       ctx.fillText('REAR-SPOUT NAV | MAG +1.06', antaresX + 14, antaresY + 6);
       ctx.restore();
 
-      // 11. Sanctuary Anchor: THE KA'ABA (Surah Al-Baqarah 2:127)
+      // 11. Sanctuary Anchor: THE KA'ABA & SACRED REFUGE ZONES
+      // Re-centered along the B1/B3 Meridian locked to the Safa & Marwa Zenith Canopy
       if (layers.showSanctuary) {
         ctx.save();
-        // Pulsing Sanctuary Aura
-        const sanctPulse = Math.sin(stateRef.current.pulse) * 4;
-        const sanctGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 24 + sanctPulse);
-        sanctGrad.addColorStop(0, 'rgba(255, 215, 0, 0.35)');
-        sanctGrad.addColorStop(0.7, 'rgba(184, 115, 51, 0.2)');
-        sanctGrad.addColorStop(1, 'rgba(184, 115, 51, 0)');
-        ctx.fillStyle = sanctGrad;
+        const kaabaX = 0;
+        const kaabaY = 26; // Locked directly along the vertical B1/B3 Meridian (x = 0)
+
+        // A. Universal Creature Refuge & Hunting Prohibition Perimeter (Surah Al-Ma'idah 5:95)
+        ctx.strokeStyle = 'rgba(136, 204, 255, 0.4)';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 4]);
         ctx.beginPath();
-        ctx.arc(0, 0, 24 + sanctPulse, 0, Math.PI * 2);
+        ctx.arc(0, 15, 88, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#88ccff';
+        ctx.font = '7.5px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('UNIVERSAL CREATURE REFUGE // HUNTING PROHIBITED [5:95]', 0, 110);
+
+        // B. The Marked Garlands Perimeter (Al-Qala'id - Surah Al-Ma'idah 5:2, 5:97)
+        // Signifying inviolable immunity, divine peace, and safe passage
+        const garlandRadius = 62;
+        ctx.strokeStyle = 'rgba(0, 255, 170, 0.55)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(0, 15, garlandRadius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Garland bead nodes along the perimeter
+        const numBeads = 8;
+        for (let b = 0; b < numBeads; b++) {
+          const beadAngle = (b / numBeads) * Math.PI * 2;
+          const bx = Math.cos(beadAngle) * garlandRadius;
+          const by = 15 + Math.sin(beadAngle) * garlandRadius;
+          ctx.fillStyle = '#00ffaa';
+          ctx.beginPath();
+          ctx.arc(bx, by, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.fillStyle = '#00ffaa';
+        ctx.font = 'bold 7.5px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('AL-QALA\'ID [5:97] (MARKED GARLANDS OF SACRED IMMUNITY)', 0, -52);
+
+        // C. Inviolable Sanctuary Haven (Amnan - Surah Al-Baqarah 2:125)
+        const amnanPulse = Math.sin(stateRef.current.pulse * 1.8) * 3;
+        const amnanGrad = ctx.createRadialGradient(kaabaX, kaabaY, 0, kaabaX, kaabaY, 36 + amnanPulse);
+        amnanGrad.addColorStop(0, 'rgba(255, 215, 0, 0.45)');
+        amnanGrad.addColorStop(0.6, 'rgba(0, 255, 170, 0.2)');
+        amnanGrad.addColorStop(1, 'rgba(0, 255, 170, 0)');
+        ctx.fillStyle = amnanGrad;
+        ctx.beginPath();
+        ctx.arc(kaabaX, kaabaY, 36 + amnanPulse, 0, Math.PI * 2);
         ctx.fill();
 
-        // Ka'aba Cube Representation (Isometric square centered at 0,0)
+        // Ka'aba Cube Representation (Centered on B1/B3 Meridian at x=0, y=26)
         const cubeSize = 14;
         ctx.fillStyle = '#111111';
         ctx.strokeStyle = '#ffd700';
         ctx.lineWidth = 1.8;
-        ctx.fillRect(-cubeSize / 2, -cubeSize / 2, cubeSize, cubeSize);
-        ctx.strokeRect(-cubeSize / 2, -cubeSize / 2, cubeSize, cubeSize);
+        ctx.fillRect(kaabaX - cubeSize / 2, kaabaY - cubeSize / 2, cubeSize, cubeSize);
+        ctx.strokeRect(kaabaX - cubeSize / 2, kaabaY - cubeSize / 2, cubeSize, cubeSize);
 
         // Golden Kiswa Inscription Band
         ctx.fillStyle = '#ffd700';
-        ctx.fillRect(-cubeSize / 2, -cubeSize / 4, cubeSize, 2.5);
+        ctx.fillRect(kaabaX - cubeSize / 2, kaabaY - cubeSize / 4, cubeSize, 2.5);
 
         // Mizab al-Rahmah indicator on top-left edge
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(-cubeSize / 2 + 2, -cubeSize / 2 + 2, 1.5, 0, Math.PI * 2);
+        ctx.arc(kaabaX - cubeSize / 2 + 2, kaabaY - cubeSize / 2 + 2, 1.5, 0, Math.PI * 2);
         ctx.fill();
 
-        // Sanctuary Center Label
+        // Sanctuary Ka'aba Labels
         ctx.fillStyle = '#ffd700';
-        ctx.font = 'bold 9px monospace';
+        ctx.font = 'bold 8.5px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('SANCTUARY (KA\'ABA)', 0, -cubeSize - 4);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '8px monospace';
-        ctx.fillText('FOUNDATION OF HOUSE [2:127]', 0, cubeSize + 11);
+        ctx.fillText('BAYT ALLAH // KA\'ABA [2:125, 2:127]', kaabaX, kaabaY + cubeSize + 9);
+        ctx.fillStyle = '#00ffaa';
+        ctx.font = '7.5px monospace';
+        ctx.fillText('AMNAN: INVIOLABLE SECURE HAVEN [2:125]', kaabaX, kaabaY + cubeSize + 18);
 
         // Safa and Marwa Landmarks (Surah Al-Baqarah 2:158)
-        // Safa at (+30, -35), Marwa at (+30, +35)
-        const safaX = 35;
-        const safaY = -40;
-        const marwaX = 35;
-        const marwaY = 40;
+        // Positioned along the Sa'i course
+        const safaX = 22;
+        const safaY = -16;
+        const marwaX = 22;
+        const marwaY = 24;
 
         // Sa'i traversal path vector between Safa & Marwa
         ctx.beginPath();
@@ -941,42 +1032,37 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
         // Safa Node
         ctx.fillStyle = '#00ffaa';
         ctx.beginPath();
-        ctx.arc(safaX, safaY, 4, 0, Math.PI * 2);
+        ctx.arc(safaX, safaY, 3.5, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1;
         ctx.stroke();
 
         ctx.fillStyle = '#00ffaa';
-        ctx.font = 'bold 8px monospace';
+        ctx.font = 'bold 7.5px monospace';
         ctx.textAlign = 'left';
-        ctx.fillText('AS-SAFA [2:158]', safaX + 8, safaY + 2);
+        ctx.fillText('AS-SAFA [2:158]', safaX + 6, safaY + 2);
 
         // Marwa Node
         ctx.fillStyle = '#00ffaa';
         ctx.beginPath();
-        ctx.arc(marwaX, marwaY, 4, 0, Math.PI * 2);
+        ctx.arc(marwaX, marwaY, 3.5, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1;
         ctx.stroke();
 
         ctx.fillStyle = '#00ffaa';
-        ctx.font = 'bold 8px monospace';
+        ctx.font = 'bold 7.5px monospace';
         ctx.textAlign = 'left';
-        ctx.fillText('AL-MARWAH [2:158]', marwaX + 8, marwaY + 2);
-
-        // Sa'i path label
-        ctx.fillStyle = '#aaddff';
-        ctx.font = '7px monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText('SA\'I CORRIDOR', safaX + 8, 0);
+        ctx.fillText('AL-MARWAH [2:158]', marwaX + 6, marwaY + 2);
 
         ctx.restore();
       }
 
       // 11b. Safa & Marwa Celestial Zenith Canopy & 4-Mountain Peak Bases
-      const canopyX = 35;
+      // Canopy Zenith sits directly at the primary coordinate intersection (0, 0)
+      const canopyX = 0;
       const canopyY = 0;
       const mountainBases = [
         { id: 'BASE_1', name: 'Base 1: Mount Kenya', lat: -0.1521, lng: 37.3084, x: 20, y: 200, color: '#00ffaa' },
@@ -1003,7 +1089,7 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
       ctx.arc(canopyX, canopyY, 185 + canopyPulse, 0, Math.PI * 2);
       ctx.fill();
 
-      // Canopy Zenith Label & Marker
+      // Canopy Zenith Marker
       ctx.fillStyle = '#88ccff';
       ctx.beginPath();
       ctx.arc(canopyX, canopyY, 7, 0, Math.PI * 2);
@@ -1014,15 +1100,15 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
 
       ctx.fillStyle = '#ffff00';
       ctx.font = 'bold 9px monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText('STELLAR CANOPY ZENITH (SAFA & MARWA) [2:158]', canopyX + 12, canopyY - 4);
+      ctx.textAlign = 'center';
+      ctx.fillText('STELLAR CANOPY ZENITH (SAFA & MARWA) [2:158]', canopyX, canopyY - 14);
       ctx.fillStyle = '#88ccff';
       ctx.font = '8px monospace';
-      ctx.fillText('21.4229° N, 39.8262° E | SHA\'A\'IR ALLAH ANCHOR', canopyX + 12, canopyY + 7);
+      ctx.fillText('PRIMARY INTERSECTION // 21.4229° N, 39.8262° E | SHA\'A\'IR ALLAH', canopyX, canopyY - 4);
 
       // Render 4 Mountain Bases and radiating alignment lines to Canopy Zenith
       mountainBases.forEach((mb) => {
-        // Alignment ray connecting to Safa & Marwa canopy center
+        // Alignment ray connecting to Safa & Marwa canopy center (0, 0)
         ctx.strokeStyle = 'rgba(0, 255, 170, 0.3)';
         ctx.lineWidth = 1.2;
         ctx.setLineDash([4, 3]);
@@ -1068,10 +1154,22 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
 
         if (highlightedNodeId === 'SANCTUARY_KAABA' || highlightedNodeId === 'KAABA_01') {
           targetX = 0;
-          targetY = 0;
+          targetY = 26;
           targetLabel = 'FOCUS: SANCTUARY KA\'ABA [2:127]';
+        } else if (highlightedNodeId === 'SANCTUARY_AMNAN') {
+          targetX = 0;
+          targetY = 26;
+          targetLabel = 'FOCUS: INVIOLABLE SANCTUARY (AMNAN) [2:125]';
+        } else if (highlightedNodeId === 'AL_QALAID_GARLANDS') {
+          targetX = 0;
+          targetY = 15;
+          targetLabel = 'FOCUS: THE MARKED GARLANDS (AL-QALA\'ID) [5:97]';
+        } else if (highlightedNodeId === 'HUNTING_PROHIBITION_REFUGE') {
+          targetX = 0;
+          targetY = 15;
+          targetLabel = 'FOCUS: WILDLIFE REFUGE & HUNTING PROHIBITION [5:95]';
         } else if (highlightedNodeId === 'SAFA_MARWA' || highlightedNodeId === 'CANOPY_ZENITH') {
-          targetX = 35;
+          targetX = 0;
           targetY = 0;
           targetLabel = 'FOCUS: SAFA & MARWA CANOPY ZENITH [2:158]';
         } else if (highlightedNodeId === 'BASE_1') {
