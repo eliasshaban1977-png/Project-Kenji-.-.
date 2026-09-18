@@ -160,7 +160,7 @@ data class SafaMarwaCanopyAnchor(
 class GoogleMapsCartographyEngine {
     // 4 Mountain Bases mapped for Google Maps API overlay
     val mountainBases = listOf(
-        GoogleMapsMountainNode("BASE_1", "Mount Kenya", -0.1521, 37.3084, 1),
+        GoogleMapsMountainNode("BASE_1", "Mount Kilimanjaro", -3.0674, 37.3556, 1),
         GoogleMapsMountainNode("BASE_2", "Pico da Tijuca (Rio)", -22.9519, -43.2105, 2),
         GoogleMapsMountainNode("BASE_3", "Flattop Mountain (Anchorage)", 61.0886, -149.6644, 3),
         GoogleMapsMountainNode("BASE_4", "Mount Fuji (Japan)", 35.3606, 138.7274, 4)

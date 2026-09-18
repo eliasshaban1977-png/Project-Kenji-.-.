@@ -14,6 +14,7 @@ import {
   computeDawnDuskBarrier,
   calculateTerminatorBarrier,
   cartographyBases,
+  convertDayOfYearToHijri,
 } from './utils/solarEngine';
 import { TerminalLogEntry } from './types';
 import {
@@ -73,6 +74,7 @@ export default function App() {
     },
   ]);
   const [isStreamPaused, setIsStreamPaused] = useState<boolean>(false);
+  const [beaconStatus, setBeaconStatus] = useState<'idle' | 'connecting' | 'locked'>('idle');
 
   // Initialize Platform Cookies & 4-Bases Dawn/Dusk Barrier Calculations on Mount
   useEffect(() => {
@@ -110,10 +112,21 @@ export default function App() {
 
   // Partner Redirect Routine
   const handlePartnerRedirect = () => {
-    addLogEntry('[PARTNER ROUTING] Executing partner routing routine...', 'action');
+    addLogEntry('[PARTNER ROUTING] Executing partner routing routine on bimetallic vapor-cooled chassis...', 'action');
     addLogEntry('[PARTNER ROUTING] Target: https://github.com/gatesfoundation/engineering-prototype-cartography', 'action');
     setCookie('cartography_redirect_click', 'PRIMARY_GOOGLE_ROUTE', 7);
     window.open(GITHUB_GATEWAY, '_blank', 'noopener,noreferrer');
+
+    setBeaconStatus('connecting');
+    addLogEntry('[BEACON SYNC] Initializing synchronization pulse via physical button press. Establishing link...', 'telemetry');
+
+    setTimeout(() => {
+      setBeaconStatus('locked');
+      addLogEntry('[BEACON LOCKED] Verified alliance with external partner routing gateway. Connection established.', 'success');
+      setTimeout(() => {
+        setBeaconStatus('idle');
+      }, 5000);
+    }, 2000);
   };
 
   // Boolean West Button (Zoom In)
@@ -144,6 +157,7 @@ export default function App() {
   // Solar calculation metrics for display
   const decResult = calculateSolarDeclination(dayOfYear);
   const barrierState = computeDawnDuskBarrier(latitudeDeg, longitudeDeg, decResult, 0);
+  const hijriDate = convertDayOfYearToHijri(dayOfYear, 2026);
 
   // Season name helper
   const getSeasonInfo = (day: number) => {
@@ -161,13 +175,36 @@ export default function App() {
         {/* Top Right Bimetallic Press Zone */}
         <div
           id="bimetallic-press-zone"
-          className="bimetallic-press-zone absolute top-3 right-3 sm:top-4 sm:right-4 w-[140px] sm:w-[155px] h-[45px] rounded border-2 border-white cursor-pointer shadow-[0_0_10px_#b87333] flex flex-col justify-center items-center text-[10px] font-bold text-white tracking-wider leading-tight select-none z-10 hover:brightness-125 transition-all"
-          style={{ background: 'linear-gradient(135deg, #4a4a4a 0%, #b87333 100%)' }}
+          className={`bimetallic-press-zone absolute top-3 right-3 sm:top-4 sm:right-4 w-[140px] sm:w-[155px] h-[45px] rounded border-2 cursor-pointer flex flex-col justify-center items-center text-[10px] font-bold tracking-wider leading-tight select-none z-10 transition-all ${
+            beaconStatus === 'locked'
+              ? 'border-[#00ffaa] shadow-[0_0_18px_#00ffaa] bg-[#00281b]'
+              : beaconStatus === 'connecting'
+              ? 'border-[#ffaa00] shadow-[0_0_15px_#ffaa00] animate-pulse bg-[#251800]'
+              : 'border-white shadow-[0_0_10px_#b87333]'
+          }`}
           onClick={handlePartnerRedirect}
           title="Open Engineering Portal & Partner Routing Gateway"
         >
-          <span>ENGINEERING PORTAL</span>
-          <span className="text-[9px] text-[#ffffff] font-bold">PARTNER ROUTING</span>
+          {beaconStatus === 'locked' ? (
+            <>
+              <span className="relative z-10 text-[#00ffaa] flex items-center gap-1 font-mono tracking-widest text-[10.5px]">
+                <Check size={12} className="text-[#00ffaa]" /> BEACON LOCKED
+              </span>
+              <span className="relative z-10 text-[8.5px] text-[#00ffaa]/90 font-mono">CONNECTION VERIFIED</span>
+            </>
+          ) : beaconStatus === 'connecting' ? (
+            <>
+              <span className="relative z-10 text-[#ffaa00] tracking-wider text-[9.5px] font-mono">
+                SYNCHRONIZING...
+              </span>
+              <span className="relative z-10 text-[8px] text-[#ffaa00]/90 font-mono">PULSE INITIALIZED</span>
+            </>
+          ) : (
+            <>
+              <span className="relative z-10 text-white">ENGINEERING PORTAL</span>
+              <span className="relative z-10 text-[9px] text-[#ffffff] font-bold">PARTNER ROUTING</span>
+            </>
+          )}
         </div>
 
         {/* Dashboard Header */}
@@ -184,24 +221,32 @@ export default function App() {
         </header>
 
         {/* Dynamic Metric Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-3 p-2 bg-[#090909] border border-[#4a4a4a] rounded text-[10px] font-mono text-center">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 my-3 p-2 bg-[#090909] border border-[#4a4a4a] rounded text-[10px] font-mono text-center">
           <div className="border-r border-[#222] last:border-r-0">
-            <span className="text-gray-400 block text-[9px]">SOLAR DECLINATION (δ)</span>
+            <span className="text-gray-400 block text-[9px]">SOLAR DAY OF YEAR</span>
+            <span className="text-[#00ffaa] font-bold text-[11px]">
+              DAY {dayOfYear} <span className="text-[9px] text-gray-400">/ 365</span>
+            </span>
+          </div>
+          <div className="border-r border-[#222] last:border-r-0">
+            <span className="text-[#00ffaa] block text-[9px] font-bold">ISLAMIC HIJRI DATE</span>
+            <span className="text-[#ffffff] font-bold text-[10.5px] truncate block" title={hijriDate.formatted}>
+              {hijriDate.formatted}
+            </span>
+          </div>
+          <div className="border-r border-[#222] last:border-r-0">
+            <span className="text-gray-400 block text-[9px]">DECLINATION (δ)</span>
             <span className="text-[#00ffaa] font-bold text-[11px]">
               {decResult.declinationDeg > 0 ? `+${decResult.declinationDeg.toFixed(2)}°` : `${decResult.declinationDeg.toFixed(2)}°`}
             </span>
           </div>
           <div className="border-r border-[#222] last:border-r-0">
-            <span className="text-gray-400 block text-[9px]">SEASONAL AXIAL TILT (ε)</span>
-            <span className="text-[#ffaa00] font-bold text-[11px]">{decResult.axialTiltDeg.toFixed(3)}°</span>
-          </div>
-          <div className="border-r border-[#222] last:border-r-0">
             <span className="text-gray-400 block text-[9px]">EQUATION OF TIME</span>
             <span className="text-[#88ccff] font-bold text-[11px]">{decResult.equationOfTimeMinutes.toFixed(1)} min</span>
           </div>
-          <div>
-            <span className="text-gray-400 block text-[9px]">CURRENT CYCLE</span>
-            <span className="text-[#d1d5db] font-bold text-[10px]">{getSeasonInfo(dayOfYear)}</span>
+          <div className="col-span-2 sm:col-span-1">
+            <span className="text-gray-400 block text-[9px]">CYCLE / SEASON</span>
+            <span className="text-[#d1d5db] font-bold text-[9.5px] truncate block">{getSeasonInfo(dayOfYear)}</span>
           </div>
         </div>
 

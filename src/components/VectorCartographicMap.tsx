@@ -267,6 +267,26 @@ export const VectorCartographicMap: React.FC<VectorCartographicMapProps> = ({
           {sanctuaryPoints.map((pt) => {
             const pos = coordsToSvg(pt.lat, pt.lng);
             const isSelected = selectedPoint?.id === pt.id;
+
+            // Compute local AM/PM time directly for mountain base anchors
+            let timeMarker = null;
+            if (pt.category === 'anchor') {
+              let diff = pt.lng - subsolarLng;
+              while (diff > 180) diff -= 360;
+              while (diff < -180) diff += 360;
+              let sHours = 12 + diff / 15;
+              while (sHours < 0) sHours += 24;
+              sHours = sHours % 24;
+              const h = Math.floor(sHours);
+              const m = Math.floor((sHours - h) * 60);
+              const ap = h >= 12 ? 'PM' : 'AM';
+              const dh = h % 12 === 0 ? 12 : h % 12;
+              const dm = m.toString().padStart(2, '0');
+              const tag = sHours >= 4.5 && sHours <= 7.0 ? 'DAWN' : sHours >= 17.0 && sHours <= 19.5 ? 'DUSK' : sHours > 7.0 && sHours < 17.0 ? 'DAY' : 'NIGHT';
+              const tagColor = tag === 'DAWN' ? '#ffaa00' : tag === 'DUSK' ? '#cc88ff' : tag === 'DAY' ? '#ffff00' : '#88ccff';
+              timeMarker = { str: `${dh}:${dm} ${ap}`, tag, color: tagColor };
+            }
+
             return (
               <g
                 key={pt.id}
@@ -278,6 +298,15 @@ export const VectorCartographicMap: React.FC<VectorCartographicMapProps> = ({
                 }}
                 className="cursor-pointer"
               >
+                {/* Local AM/PM Time Marker directly above mountain base anchor */}
+                {timeMarker && (
+                  <g transform="translate(0, -9)">
+                    <rect x="-27" y="-7" width="54" height="9" rx="2" fill="rgba(0,0,0,0.9)" stroke={timeMarker.color} strokeWidth="0.7" />
+                    <text x="0" y="-1.5" fill="#ffffff" fontSize="5.2" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                      {timeMarker.str} <tspan fill={timeMarker.color}>[{timeMarker.tag}]</tspan>
+                    </text>
+                  </g>
+                )}
                 <circle r={isSelected ? 8 : 4} fill={pt.color} stroke="#ffffff" strokeWidth={isSelected ? 1.5 : 0.8} />
                 {isSelected && (
                   <circle r={14} fill="none" stroke={pt.color} strokeWidth="1" strokeDasharray="3 2" className="animate-spin" />

@@ -187,6 +187,26 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
             {/* 2. Sanctuary & Anchors Markers */}
             {sanctuaryPoints.map((pt) => {
               const isSelected = selectedPoint?.id === pt.id;
+
+              // Compute local AM/PM solar time for mountain base anchor
+              let timeMarker = null;
+              if (pt.category === 'anchor') {
+                let diff = pt.lng - subsolarLng;
+                while (diff > 180) diff -= 360;
+                while (diff < -180) diff += 360;
+                let sHours = 12 + diff / 15;
+                while (sHours < 0) sHours += 24;
+                sHours = sHours % 24;
+                const h = Math.floor(sHours);
+                const m = Math.floor((sHours - h) * 60);
+                const ap = h >= 12 ? 'PM' : 'AM';
+                const dh = h % 12 === 0 ? 12 : h % 12;
+                const dm = m.toString().padStart(2, '0');
+                const tag = sHours >= 4.5 && sHours <= 7.0 ? 'DAWN' : sHours >= 17.0 && sHours <= 19.5 ? 'DUSK' : sHours > 7.0 && sHours < 17.0 ? 'DAY' : 'NIGHT';
+                const tagColor = tag === 'DAWN' ? '#ffaa00' : tag === 'DUSK' ? '#cc88ff' : tag === 'DAY' ? '#ffff00' : '#88ccff';
+                timeMarker = { str: `${dh}:${dm} ${ap}`, tag, color: tagColor };
+              }
+
               return (
                 <AdvancedMarker
                   key={pt.id}
@@ -197,12 +217,21 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
                   }}
                   title={pt.title}
                 >
-                  <Pin
-                    background={pt.color}
-                    borderColor={isSelected ? '#ffffff' : '#000000'}
-                    glyphColor={pt.glyphColor}
-                    scale={isSelected ? 1.3 : pt.category === 'sanctuary' ? 1.25 : 0.95}
-                  />
+                  <div className="relative flex flex-col items-center">
+                    {/* Local AM/PM time marker badge directly above coordinate pin */}
+                    {timeMarker && (
+                      <div className="mb-1 px-1.5 py-0.5 bg-black/90 border border-[#b87333] rounded text-[8px] font-mono whitespace-nowrap text-white shadow-md flex items-center gap-1 pointer-events-none">
+                        <span>{timeMarker.str}</span>
+                        <span style={{ color: timeMarker.color }} className="font-bold">[{timeMarker.tag}]</span>
+                      </div>
+                    )}
+                    <Pin
+                      background={pt.color}
+                      borderColor={isSelected ? '#ffffff' : '#000000'}
+                      glyphColor={pt.glyphColor}
+                      scale={isSelected ? 1.3 : pt.category === 'sanctuary' ? 1.25 : 0.95}
+                    />
+                  </div>
                 </AdvancedMarker>
               );
             })}

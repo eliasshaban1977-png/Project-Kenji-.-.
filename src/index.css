@@ -37,8 +37,9 @@ body {
   background: var(--copper);
 }
 
-/* Bimetallic press zone button shine */
+/* Bimetallic press zone button shine & radial flare hover */
 .bimetallic-press-zone {
+  position: relative;
   background: linear-gradient(135deg, var(--border-gray) 0%, var(--copper) 100%);
   border: 2px solid #ffffff;
   cursor: pointer;
@@ -51,12 +52,38 @@ body {
   font-weight: bold;
   text-align: center;
   user-select: none;
-  transition: all 0.2s ease;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bimetallic-press-zone::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 220%;
+  height: 220%;
+  transform: translate(-50%, -50%) scale(0.2);
+  background: radial-gradient(circle, rgba(0, 255, 170, 0.45) 0%, rgba(184, 115, 51, 0.35) 45%, rgba(0, 0, 0, 0) 75%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.45s ease-out;
 }
 
 .bimetallic-press-zone:hover {
-  filter: brightness(1.25);
-  box-shadow: 0 0 16px var(--cyan-accent);
+  filter: brightness(1.2);
+  box-shadow: 0 0 18px rgba(0, 255, 170, 0.6), 0 0 24px rgba(184, 115, 51, 0.5);
+  border-color: #00ffaa;
+}
+
+.bimetallic-press-zone:hover::before {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.bimetallic-press-zone:active {
+  transform: scale(0.97);
+  box-shadow: 0 0 8px rgba(0, 255, 170, 0.8);
 }
 
 .chassis-tier-3 {

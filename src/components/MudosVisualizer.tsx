@@ -46,12 +46,12 @@ export const SANCTUARY_MAP_POINTS: SanctuaryMapPoint[] = [
   },
   {
     id: 'BASE_1',
-    title: 'Base 1: Mount Kenya',
+    title: 'Base 1: Mount Kilimanjaro',
     category: 'anchor',
-    lat: -0.1521,
-    lng: 37.3084,
+    lat: -3.0674,
+    lng: 37.3556,
     quranRef: 'Surah Al-Baqarah (2:260)',
-    description: "East African Mountain Anchor (Batian/Nelion equatorial peak). First mountain base alignment to the Safa & Marwa celestial canopy.",
+    description: "East African Mountain Anchor (Kilimanjaro Kibo Summit). First mountain base alignment to the Safa & Marwa celestial canopy.",
     color: '#00ffaa',
     glyphColor: '#000000',
   },
@@ -1065,7 +1065,7 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
       const canopyX = 0;
       const canopyY = 0;
       const mountainBases = [
-        { id: 'BASE_1', name: 'Base 1: Mount Kenya', lat: -0.1521, lng: 37.3084, x: 20, y: 200, color: '#00ffaa' },
+        { id: 'BASE_1', name: 'Base 1: Mount Kilimanjaro', lat: -3.0674, lng: 37.3556, x: 20, y: 200, color: '#00ffaa' },
         { id: 'BASE_2', name: 'Base 2: Pico da Tijuca (Rio)', lat: -22.9519, lng: -43.2105, x: -210, y: 175, color: '#00ffaa' },
         { id: 'BASE_3', name: 'Base 3: Flattop Mountain (Anchorage)', lat: 61.0886, lng: -149.6644, x: -220, y: -190, color: '#88ccff' },
         { id: 'BASE_4', name: 'Base 4: Mount Fuji (Japan)', lat: 35.3606, lng: 138.7274, x: 235, y: -110, color: '#ffaa00' },
@@ -1106,7 +1106,7 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
       ctx.font = '8px monospace';
       ctx.fillText('PRIMARY INTERSECTION // 21.4229° N, 39.8262° E | SHA\'A\'IR ALLAH', canopyX, canopyY - 4);
 
-      // Render 4 Mountain Bases and radiating alignment lines to Canopy Zenith
+      // Render 4 Mountain Bases with local AM/PM time markers directly above coordinate points
       mountainBases.forEach((mb) => {
         // Alignment ray connecting to Safa & Marwa canopy center (0, 0)
         ctx.strokeStyle = 'rgba(0, 255, 170, 0.3)';
@@ -1118,7 +1118,81 @@ export const MudosVisualizer: React.FC<MudosVisualizerProps> = ({
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Base node
+        // Calculate dynamic local solar / landmark time relative to current subsolar position
+        let diffDeg = mb.lng - subsolarLng;
+        while (diffDeg > 180) diffDeg -= 360;
+        while (diffDeg < -180) diffDeg += 360;
+        let localSolarHours = 12 + diffDeg / 15;
+        while (localSolarHours < 0) localSolarHours += 24;
+        localSolarHours = localSolarHours % 24;
+
+        const hrInt = Math.floor(localSolarHours);
+        const minInt = Math.floor((localSolarHours - hrInt) * 60);
+        const ampm = hrInt >= 12 ? 'PM' : 'AM';
+        const displayHr = hrInt % 12 === 0 ? 12 : hrInt % 12;
+        const padMin = minInt.toString().padStart(2, '0');
+        const timeBadgeText = `${displayHr}:${padMin} ${ampm}`;
+
+        // Determine barrier transition status for visual telemetry
+        let barrierTag = 'DAY';
+        let badgeBorder = '#00ffaa';
+        let badgeBg = 'rgba(0, 25, 18, 0.9)';
+        if (localSolarHours >= 4.5 && localSolarHours <= 7.0) {
+          barrierTag = 'DAWN';
+          badgeBorder = '#ffaa00';
+          badgeBg = 'rgba(40, 25, 0, 0.92)';
+        } else if (localSolarHours >= 17.0 && localSolarHours <= 19.5) {
+          barrierTag = 'DUSK';
+          badgeBorder = '#cc88ff';
+          badgeBg = 'rgba(30, 10, 45, 0.92)';
+        } else if (localSolarHours > 7.0 && localSolarHours < 17.0) {
+          barrierTag = 'DAY';
+          badgeBorder = '#ffff00';
+          badgeBg = 'rgba(35, 35, 5, 0.88)';
+        } else {
+          barrierTag = 'NIGHT';
+          badgeBorder = '#88ccff';
+          badgeBg = 'rgba(5, 15, 30, 0.92)';
+        }
+
+        // Local AM/PM time marker badge rendered directly above the mountain base coordinate point
+        const badgeY = mb.y - 23;
+        const badgeWidth = 78;
+        const badgeHeight = 15;
+        ctx.save();
+        ctx.fillStyle = badgeBg;
+        ctx.strokeStyle = badgeBorder;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(mb.x - badgeWidth / 2, badgeY - badgeHeight / 2, badgeWidth, badgeHeight, 3);
+        } else {
+          ctx.rect(mb.x - badgeWidth / 2, badgeY - badgeHeight / 2, badgeWidth, badgeHeight);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        // Small vertical alignment tick connecting marker badge down to peak glyph
+        ctx.strokeStyle = badgeBorder;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(mb.x, badgeY + badgeHeight / 2);
+        ctx.lineTo(mb.x, mb.y - 12);
+        ctx.stroke();
+
+        // Local time text & dawn/dusk barrier label inside badge
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 8px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(timeBadgeText, mb.x - 11, badgeY);
+
+        ctx.fillStyle = badgeBorder;
+        ctx.font = 'bold 7px monospace';
+        ctx.fillText(barrierTag, mb.x + 24, badgeY);
+        ctx.restore();
+
+        // Base node circle
         ctx.fillStyle = mb.color;
         ctx.beginPath();
         ctx.arc(mb.x, mb.y, 5.5, 0, Math.PI * 2);

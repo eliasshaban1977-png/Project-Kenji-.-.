@@ -18,11 +18,11 @@ export const SAFA_MARWA_CANOPY: SafaMarwaCanopyAnchor = {
 export const cartographyBases: CartographyBase[] = [
   {
     id: "base_1",
-    name: "Base 1: Mount Kenya",
-    lat: -0.1521,
-    lng: 37.3084,
-    description: "East African Mountain Anchor (Equatorial Batian Peak)",
-    hillName: "Mount Kenya (Batian / Nelion Ridge)",
+    name: "Base 1: Mount Kilimanjaro",
+    lat: -3.0674,
+    lng: 37.3556,
+    description: "East African Mountain Anchor (Kilimanjaro Kibo Summit)",
+    hillName: "Mount Kilimanjaro",
     birdSymbol: "Eagle (Al-Uqab)",
     color: "#00ffaa",
   },
@@ -212,6 +212,93 @@ export function computeDawnDuskBarrier(
     isPolarNight,
     terminatorNormalVector: [eastComponent, northComponent, upComponent],
   };
+}
+
+/**
+ * Converts a solar day-of-year (1-366) and Gregorian year into an Islamic Hijri date.
+ * Uses standard Intl Islamic Umm al-Qura calendar formatting with mathematical fallback.
+ */
+export interface HijriDateResult {
+  day: number;
+  monthName: string;
+  monthNumber: number;
+  year: number;
+  formatted: string;
+}
+
+export const ISLAMIC_MONTH_NAMES = [
+  'Muharram',
+  'Safar',
+  "Rabi' al-Awwal",
+  "Rabi' al-Thani",
+  'Jumada al-Ula',
+  'Jumada al-Thaniyah',
+  'Rajab',
+  "Sha'ban",
+  'Ramadan',
+  'Shawwal',
+  "Dhu al-Qi'dah",
+  'Dhu al-Hijjah',
+];
+
+export function convertDayOfYearToHijri(dayOfYear: number, baseYear: number = 2026): HijriDateResult {
+  try {
+    const gregDate = new Date(Date.UTC(baseYear, 0, 1));
+    gregDate.setUTCDate(dayOfYear);
+
+    const intlFormatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+
+    const parts = intlFormatter.formatToParts(gregDate);
+    let day = 1;
+    let monthNumber = 1;
+    let year = 1447;
+
+    for (const part of parts) {
+      if (part.type === 'day') day = parseInt(part.value, 10);
+      if (part.type === 'month') monthNumber = parseInt(part.value, 10);
+      if (part.type === 'year') {
+        const parsedYear = parseInt(part.value.replace(/[^0-9]/g, ''), 10);
+        if (!isNaN(parsedYear)) year = parsedYear;
+      }
+    }
+
+    const monthIndex = Math.max(0, Math.min(11, monthNumber - 1));
+    const monthName = ISLAMIC_MONTH_NAMES[monthIndex];
+
+    return {
+      day,
+      monthName,
+      monthNumber,
+      year,
+      formatted: `${day} ${monthName} ${year} AH`,
+    };
+  } catch {
+    // Robust Kuweit algorithm fallback for constrained environments
+    const gregDate = new Date(Date.UTC(baseYear, 0, dayOfYear));
+    const jd = Math.floor(gregDate.getTime() / 86400000) + 2440587.5;
+    const l = Math.floor(jd - 1948440 + 10632);
+    const n = Math.floor((l - 1) / 10631);
+    const l2 = l - 10631 * n + 354;
+    const j = Math.floor((10985 - l2) / 5316) * Math.floor((50 * l2) / 17719) + Math.floor(l2 / 5670) * Math.floor((43 * l2) / 15238);
+    const l3 = l2 - Math.floor((30 - j) / 15) * Math.floor((17719 * j) / 50) - Math.floor(j / 16) * Math.floor((15238 * j) / 43) + 29;
+    const month = Math.floor((24 * l3) / 709);
+    const day = l3 - Math.floor((709 * month) / 24);
+    const year = 30 * n + j - 30;
+    const monthIndex = Math.max(0, Math.min(11, month - 1));
+
+    return {
+      day,
+      monthName: ISLAMIC_MONTH_NAMES[monthIndex],
+      monthNumber: month,
+      year,
+      formatted: `${day} ${ISLAMIC_MONTH_NAMES[monthIndex]} ${year} AH`,
+    };
+  }
 }
 
 /**
