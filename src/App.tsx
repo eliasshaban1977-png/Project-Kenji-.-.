@@ -36,6 +36,57 @@ import {
 
 const GITHUB_GATEWAY = 'https://github.com/gatesfoundation/engineering-prototype-cartography';
 
+/**
+ * Synthesizes a crisp, bimetallic physical relay-switch click feedback sound
+ * via the Web Audio API without external asset dependencies.
+ */
+function playPhysicalClickSound() {
+  try {
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+
+    const t = ctx.currentTime;
+
+    // Transient impulse (metallic initial switch tap)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'triangle';
+    osc1.frequency.setValueAtTime(1450, t);
+    osc1.frequency.exponentialRampToValueAtTime(320, t + 0.035);
+
+    gain1.gain.setValueAtTime(0.35, t);
+    gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+
+    osc1.start(t);
+    osc1.stop(t + 0.038);
+
+    // Resonant chassis clack (iron-copper tactile resonance)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(440, t + 0.008);
+    osc2.frequency.exponentialRampToValueAtTime(180, t + 0.065);
+
+    gain2.gain.setValueAtTime(0.28, t + 0.008);
+    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.065);
+
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+
+    osc2.start(t + 0.008);
+    osc2.stop(t + 0.07);
+  } catch {
+    // AudioContext may be restricted by browser autoplay policy
+  }
+}
+
 export default function App() {
   // Navigation & Zoom State
   const [zoomScale, setZoomScale] = useState<number>(1.0);
@@ -112,6 +163,9 @@ export default function App() {
 
   // Partner Redirect Routine
   const handlePartnerRedirect = () => {
+    // Trigger simulated physical switch click feedback sound via Web Audio API
+    playPhysicalClickSound();
+
     addLogEntry('[PARTNER ROUTING] Executing partner routing routine on bimetallic vapor-cooled chassis...', 'action');
     addLogEntry('[PARTNER ROUTING] Target: https://github.com/gatesfoundation/engineering-prototype-cartography', 'action');
     setCookie('cartography_redirect_click', 'PRIMARY_GOOGLE_ROUTE', 7);
